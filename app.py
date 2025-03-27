@@ -1,6 +1,6 @@
-
 import streamlit as st
 import pandas as pd
+import io
 
 # Cargar datos desde archivo Excel
 df = pd.read_excel("formato_optimo_automatizacion.xlsx")
@@ -28,5 +28,17 @@ if st.button("Aplicar nuevo margen"):
     st.write("### Nuevos precios con margen del ", nuevo_margen, "%")
     st.dataframe(filtro[["codigo", "producto", "costo_neto", "nuevo_precio_venta_iva"]])
 
-    # Exportar como Excel
-    st.download_button("Descargar nuevos precios", filtro.to_excel(index=False), file_name="precios_actualizados.xlsx")
+    # Crear el buffer Excel
+    excel_buffer = io.BytesIO()
+    with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
+        filtro.to_excel(writer, index=False)
+    excel_buffer.seek(0)
+
+    # Botón para descargar
+    st.download_button(
+        label="Descargar nuevos precios",
+        data=excel_buffer,
+        file_name="precios_actualizados.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
